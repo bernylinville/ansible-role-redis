@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/geerlingguy/ansible-role-php-redis/actions/workflows/ci.yml/badge.svg)](https://github.com/geerlingguy/ansible-role-php-redis/actions/workflows/ci.yml)
 
-Installs [Redis](http://redis.io/) on Linux.
+Installs [Redis](http://redis.io/) on Linux..
 
 ## Requirements
 
