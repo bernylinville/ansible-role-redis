@@ -13,5 +13,8 @@
   #       redis_enablerepo: ""
   #     when: ansible_distribution == 'Fedora'
 
+  # vars:
+  #   redis_download_url: "https://ghfast.top/{{ redis_repo_url }}/releases/download/v{{ redis_roles_version }}/redis-{{ redis_version }}-{{ ansible_distribution }}-{{ ansible_distribution_version }}-{{ ansible_architecture }}.tar.gz"
+
   roles:
     - role: bernylinville.redis

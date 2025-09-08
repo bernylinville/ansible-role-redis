@@ -8,7 +8,7 @@ driver:
   name: docker
 platforms:
   - name: instance
-    image: "geerlingguy/docker-${MOLECULE_DISTRO:-rockylinux9}-ansible:latest"
+    image: "bernylinville/docker-${MOLECULE_DISTRO:-openeuler2403}-ansible:latest"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
@@ -19,3 +19,12 @@ provisioner:
   name: ansible
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+  inventory:
+    hosts:
+      all:
+        vars:
+          # 确保以 root 连接，避免触发 sudo
+          ansible_user: root
+          ansible_become: false
+          # 明确 Python 解释器路径，避免探测错误
+          ansible_python_interpreter: /usr/bin/python3

@@ -94,7 +94,8 @@
         remote_src: true
         extra_opts:
           - --no-same-owner
-      notify: Restart redis service
+          - --strip-components=1
+      notify: Restart Redis service
       register: archive_downloaded
       become: false
       delegate_to: localhost
@@ -103,7 +104,7 @@
         - not redis_is_installed.stat.exists or
           redis_version not in redis_current_version.stdout
 
-    - name: Upload redis release binary # noqa: no-handler
+    - name: Upload Redis release binary # noqa: no-handler
       ansible.builtin.copy:
         src: "/tmp/redis/{{ item }}"
         dest: /usr/local/bin

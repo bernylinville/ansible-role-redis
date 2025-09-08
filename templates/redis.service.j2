@@ -7,8 +7,8 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/redis-server {{ redis_config_file }} --daemonize no --supervised systemd
-Type=notify
+ExecStart=/usr/local/bin/redis-server {{ redis_config_file }}
+Type=simple
 LimitNOFILE={{ redis_max_open_files }}
 User={{ redis_system_user }}
 Group={{ redis_system_group }}
