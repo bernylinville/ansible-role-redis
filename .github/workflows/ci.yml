@@ -10,7 +10,7 @@ name: CI
 
 defaults:
   run:
-    working-directory: 'geerlingguy.redis'
+    working-directory: 'bernylinville.redis'
 
 jobs:
 
@@ -21,7 +21,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v4
         with:
-          path: 'geerlingguy.redis'
+          path: 'bernylinville.redis'
 
       - name: Set up Python 3.
         uses: actions/setup-python@v5
@@ -41,8 +41,8 @@ jobs:
     strategy:
       matrix:
         distro:
-          - ubuntu2404
-          - debian12
+          # - ubuntu2404
+          # - debian12
           - rockylinux9
 
     steps:

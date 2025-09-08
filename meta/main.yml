@@ -3,24 +3,24 @@ dependencies: []
 
 galaxy_info:
   role_name: redis
-  author: geerlingguy
+  author: bernylinville
   description: Redis for Linux
   company: "Midwestern Mac, LLC"
   license: "license (BSD, MIT)"
   min_ansible_version: 2.10
   platforms:
-    - name: Fedora
+    - name: openEuler
       versions:
-        - all
-    - name: Debian
-      versions:
-        - all
-    - name: Ubuntu
-      versions:
-        - all
-    - name: Archlinux
-      versions:
-        - all
+        - 24.03
+    # - name: Debian
+    #   versions:
+    #     - all
+    # - name: Ubuntu
+    #   versions:
+    #     - all
+    # - name: Archlinux
+    #   versions:
+    #     - all
   galaxy_tags:
     - database
     - development
