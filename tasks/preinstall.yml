@@ -1,0 +1,27 @@
+---
+- name: Assert usage of systemd as an init system
+  ansible.builtin.assert:
+    that: ansible_service_mgr == 'systemd'
+    msg: "This role only works with systemd"
+
+- name: Check if Redis is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/redis-server
+  changed_when: false
+  check_mode: false
+  register: redis_is_installed
+
+- name: Check current Redis version
+  ansible.builtin.command: /usr/local/bin/redis-server --version
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  register: redis_current_version
+  when: redis_is_installed.stat.exists | bool
+
+# - name: Check if crontab is present
+#   ansible.builtin.raw: which crontab
+#   check_mode: false
+#   changed_when: false
+#   failed_when: false
+#   register: crontab_which

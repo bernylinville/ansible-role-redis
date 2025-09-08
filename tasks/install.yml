@@ -1,0 +1,131 @@
+---
+- name: Create Redis system group
+  ansible.builtin.group:
+    name: "{{ redis_system_group }}"
+    state: present
+    system: true
+  when: redis_system_group != "root"
+
+- name: Create Redis system user
+  ansible.builtin.user:
+    name: "{{ redis_system_user }}"
+    groups: "{{ redis_system_group }}"
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    createhome: false
+  when: redis_system_user != "root"
+
+- name: Ensure existence of /usr/local/bin
+  ansible.builtin.file:
+    path: /usr/local/bin
+    state: directory
+    mode: 0755
+
+- name: Ensure existence of Redis data directory
+  ansible.builtin.file:
+    path: "{{ redis_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ redis_system_user }}"
+    group: "{{ redis_system_group }}"
+
+- name: Ensure existence of Redis config directory
+  ansible.builtin.file:
+    path: "{{ redis_config_file_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ redis_system_user }}"
+    group: "{{ redis_system_group }}"
+  when: redis_config_file_dir != "/etc"
+
+- name: Ensure existence of Redis pid directory
+  ansible.builtin.file:
+    path: "{{ redis_pid_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ redis_system_user }}"
+    group: "{{ redis_system_group }}"
+
+- name: Ensure existence of Redis log directory
+  ansible.builtin.file:
+    path: "{{ redis_log_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ redis_system_user }}"
+    group: "{{ redis_system_group }}"
+
+- name: Delete existing Redis binary files if version is different
+  ansible.builtin.file:
+    path: "/usr/local/bin/{{ item }}"
+    state: absent
+  loop:
+    - redis-server
+    - redis-cli
+    - redis-benchmark
+    - redis-check-aof
+    - redis-check-rdb
+    - redis-sentinel
+  when:
+    - redis_is_installed.stat.exists | bool
+    - redis_version not in redis_current_version.stdout
+
+- name: Download and setup binaries
+  block:
+    - name: Prepare local download paths
+      delegate_to: localhost
+      become: false
+      ansible.builtin.file:
+        path: /tmp/redis
+        state: directory
+        mode: 0755
+      when:
+        - not ansible_check_mode
+        - not redis_is_installed.stat.exists or
+          redis_version not in redis_current_version.stdout
+
+    - name: Download and unarchive redis release binary
+      environment:
+        http_proxy: ''
+        https_proxy: ''
+      ansible.builtin.unarchive:
+        src: "{{ redis_download_url }}"
+        dest: /tmp/redis
+        remote_src: true
+        extra_opts:
+          - --no-same-owner
+      notify: Restart redis service
+      register: archive_downloaded
+      become: false
+      delegate_to: localhost
+      when:
+        - not ansible_check_mode
+        - not redis_is_installed.stat.exists or
+          redis_version not in redis_current_version.stdout
+
+    - name: Upload redis release binary # noqa: no-handler
+      ansible.builtin.copy:
+        src: "/tmp/redis/{{ item }}"
+        dest: /usr/local/bin
+        mode: 0751
+        owner: "{{ redis_system_user }}"
+        group: "{{ redis_system_group }}"
+      when:
+        - archive_downloaded is changed
+      loop:
+        - redis-server
+        - redis-cli
+        - redis-benchmark
+        - redis-check-aof
+        - redis-check-rdb
+        - redis-sentinel
+
+  always:
+    - name: Clear download paths
+      delegate_to: localhost
+      become: false
+      ansible.builtin.file:
+        path: /tmp/redis
+        state: absent
+      when:
+        - not ansible_check_mode

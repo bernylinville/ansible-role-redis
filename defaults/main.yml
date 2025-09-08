@@ -1,14 +1,29 @@
 ---
-# Used for RHEL/CentOS/Fedora only. Allows the use of different repos.
-redis_enablerepo: epel
+redis_version: "6.2.19"
+
+redis_repo_url: "https://github.com/bernylinville/ansible-role-redis"
+redis_download_url: "{{ redis_repo_url }}/releases/download/redis-{{ redis_version }}/redis-{{ redis_version }}-{{ ansible_distribution }}-{{ ansible_distribution_version }}-{{ ansible_architecture }}.tar.gz"
+
+redis_system_user: "redis"
+redis_system_group: "{{ redis_system_user }}"
+
+redis_data_dir: "/var/lib/redis"
+redis_config_file_dir: "/etc"
+redis_config_file: "{{ redis_config_file_dir }}/redis.conf"
+
+redis_pid_dir: "/var/run/redis"
+redis_pid_file: "{{ redis_pid_dir }}/redis.pid"
+
+redis_max_open_files: 10240
 
 redis_port: 6379
 redis_bind_interface: 127.0.0.1
-redis_unixsocket: ''
-redis_timeout: 300
+redis_unix_socket: ''
+redis_timeout: 0
 
-redis_loglevel: "notice"
-redis_logfile: /var/log/redis/redis-server.log
+redis_log_level: "notice"
+redis_log_dir: "/var/log/redis"
+redis_log_file: "{{ redis_log_dir }}/redis-server.log"
 
 redis_databases: 16
 
@@ -20,7 +35,6 @@ redis_save:
 
 redis_rdbcompression: "yes"
 redis_dbfilename: dump.rdb
-redis_dbdir: /var/lib/redis
 
 redis_maxmemory: 0
 redis_maxmemory_policy: "noeviction"
