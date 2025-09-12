@@ -1,9 +1,8 @@
 ---
 redis_version: "6.2.19"
-redis_roles_version: "2.2.0"
 
 redis_repo_url: "https://github.com/bernylinville/ansible-role-redis"
-redis_download_url: "{{ redis_repo_url }}/releases/download/{{ redis_roles_version }}/redis-{{ redis_version }}-{{ ansible_distribution }}-{{ ansible_distribution_version }}-{{ ansible_architecture }}.tar.gz"
+redis_download_url: "{{ redis_repo_url }}/releases/download/redis-{{ redis_version }}/redis-{{ redis_version }}-{{ ansible_distribution }}-{{ ansible_distribution_version }}-{{ ansible_architecture }}.tar.gz"
 
 redis_system_user: "redis"
 redis_system_group: "{{ redis_system_user }}"
