@@ -46,6 +46,7 @@
     mode: "0755"
     owner: "{{ redis_system_user }}"
     group: "{{ redis_system_group }}"
+  when: not redis_is_installed.stat.exists
 
 - name: Ensure existence of Redis log directory
   ansible.builtin.file:

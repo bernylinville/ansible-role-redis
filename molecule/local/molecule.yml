@@ -1,0 +1,38 @@
+---
+role_name_check: 1
+dependency:
+  name: galaxy
+  options:
+    ignore-errors: true
+driver:
+  name: docker
+platforms:
+  - name: instance
+    image: "bernylinville/docker-${MOLECULE_DISTRO:-openeuler2403}-ansible:latest"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    etc_hosts:
+      host.docker.internal: 172.17.0.1
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+    verify: verify.yml
+  inventory:
+    hosts:
+      all:
+        vars:
+          # 确保以 root 连接，避免触发 sudo
+          ansible_user: root
+          ansible_become: false
+          # 明确 Python 解释器路径，避免探测错误
+          ansible_python_interpreter: /usr/bin/python3
+          # 若本机启用代理，可将其映射到容器使用
+          # 7890 为常见 Clash 端口，如需修改请在此处覆盖
+          # 你也可在执行时通过 `-e` 传入 mysql_http_proxy/mysql_https_proxy
+          mysql_http_proxy: "http://host.docker.internal:7890"
+          mysql_https_proxy: "http://host.docker.internal:7890"

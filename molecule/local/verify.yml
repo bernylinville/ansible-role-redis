@@ -1,0 +1,127 @@
+---
+- name: Verify Redis installation and health
+  hosts: all
+  gather_facts: true
+  vars_files:
+    - "../../defaults/main.yml"
+  tasks:
+    - name: Check redis-server binary exists
+      ansible.builtin.stat:
+        path: "/usr/local/bin/redis-server"
+      register: redis_server_bin
+
+    - name: Assert redis-server exists
+      ansible.builtin.assert:
+        that: redis_server_bin.stat.exists
+
+    - name: Check redis-cli binary exists
+      ansible.builtin.stat:
+        path: "/usr/local/bin/redis-cli"
+      register: redis_cli_bin
+
+    - name: Assert redis-cli exists
+      ansible.builtin.assert:
+        that: redis_cli_bin.stat.exists
+
+    - name: Get redis-server version
+      ansible.builtin.command: "/usr/local/bin/redis-server --version"
+      register: redis_ver
+      changed_when: false
+
+    - name: Show redis-server version
+      ansible.builtin.debug:
+        var: redis_ver.stdout
+
+    - name: Assert installed Redis version matches defaults
+      ansible.builtin.assert:
+        that:
+          - redis_version in redis_ver.stdout
+        fail_msg: "redis-server version does not contain {{ redis_version }}"
+
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+      changed_when: false
+
+    - name: Check systemd service active
+      ansible.builtin.assert:
+        that:
+          - "'redis.service' in ansible_facts.services"
+          - ansible_facts.services['redis.service'].state == "running"
+        fail_msg: "Service redis is not running"
+
+    - name: Wait for Redis TCP port
+      ansible.builtin.wait_for:
+        host: "{{ redis_bind_interface }}"
+        port: "{{ redis_port }}"
+        timeout: 60
+
+    - name: Wait for Redis UNIX socket when configured
+      ansible.builtin.wait_for:
+        path: "{{ redis_unix_socket }}"
+        state: present
+        timeout: 60
+      when: redis_unix_socket | length > 0
+
+    - name: Ping Redis without password
+      ansible.builtin.command: >-
+        /usr/local/bin/redis-cli -h {{ redis_bind_interface }} -p {{ redis_port }} PING
+      register: redis_ping
+      changed_when: false
+      when: (redis_requirepass | default('')) | length == 0
+
+    - name: Ping Redis with password
+      ansible.builtin.command: >-
+        /usr/local/bin/redis-cli -h {{ redis_bind_interface }} -p {{ redis_port }}
+        -a {{ redis_requirepass }} PING
+      register: redis_ping_auth
+      changed_when: false
+      when: (redis_requirepass | default('')) | length > 0
+
+    - name: Assert Redis PING returns PONG
+      ansible.builtin.assert:
+        that:
+          - (redis_requirepass | default('')) | length == 0 and 'PONG' in redis_ping.stdout
+            or (redis_requirepass | default('')) | length > 0 and 'PONG' in redis_ping_auth.stdout
+        fail_msg: "redis-cli PING did not return PONG"
+
+    - name: Get Redis config dir
+      ansible.builtin.command: >-
+        /usr/local/bin/redis-cli -h {{ redis_bind_interface }} -p {{ redis_port }}
+        {{ (redis_requirepass | default('')) | length > 0 | ternary('-a ' ~ redis_requirepass, '') }}
+        CONFIG GET dir
+      register: cfg_dir
+      changed_when: false
+
+    - name: Assert Redis data dir matches
+      ansible.builtin.assert:
+        that:
+          - cfg_dir.stdout_lines | length >= 2
+          - cfg_dir.stdout_lines[-1] == redis_data_dir
+        fail_msg: "Redis data dir mismatch: got {{ cfg_dir.stdout_lines[-1] | default('N/A') }}, expected {{ redis_data_dir }}"
+
+    - name: Get Redis dbfilename
+      ansible.builtin.command: >-
+        /usr/local/bin/redis-cli -h {{ redis_bind_interface }} -p {{ redis_port }}
+        {{ (redis_requirepass | default('')) | length > 0 | ternary('-a ' ~ redis_requirepass, '') }}
+        CONFIG GET dbfilename
+      register: cfg_dbfn
+      changed_when: false
+
+    - name: Assert Redis dbfilename matches
+      ansible.builtin.assert:
+        that:
+          - cfg_dbfn.stdout_lines | length >= 2
+          - cfg_dbfn.stdout_lines[-1] == redis_dbfilename
+        fail_msg: "Redis dbfilename mismatch: got {{ cfg_dbfn.stdout_lines[-1] | default('N/A') }}, expected {{ redis_dbfilename }}"
+
+    - name: Read vm.overcommit_memory
+      ansible.builtin.slurp:
+        src: /proc/sys/vm/overcommit_memory
+      register: overcommit
+      changed_when: false
+
+    - name: Assert vm.overcommit_memory is 1
+      ansible.builtin.assert:
+        that:
+          - (overcommit.content | b64decode | trim) == '1'
+        fail_msg: "vm.overcommit_memory is not 1"
