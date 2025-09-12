@@ -43,13 +43,14 @@ jobs:
         distro:
           # - ubuntu2404
           # - debian12
-          - rockylinux9
+          # - rockylinux9
+          - openeuler2403
 
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
         with:
-          path: 'geerlingguy.redis'
+          path: 'bernylinville.redis'
 
       - name: Set up Python 3.
         uses: actions/setup-python@v5

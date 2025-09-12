@@ -20,13 +20,13 @@
   ansible.builtin.file:
     path: /usr/local/bin
     state: directory
-    mode: 0755
+    mode: "0755"
 
 - name: Ensure existence of Redis data directory
   ansible.builtin.file:
     path: "{{ redis_data_dir }}"
     state: directory
-    mode: 0755
+    mode: "0755"
     owner: "{{ redis_system_user }}"
     group: "{{ redis_system_group }}"
 
@@ -34,7 +34,7 @@
   ansible.builtin.file:
     path: "{{ redis_config_file_dir }}"
     state: directory
-    mode: 0755
+    mode: "0755"
     owner: "{{ redis_system_user }}"
     group: "{{ redis_system_group }}"
   when: redis_config_file_dir != "/etc"
@@ -43,7 +43,7 @@
   ansible.builtin.file:
     path: "{{ redis_pid_dir }}"
     state: directory
-    mode: 0755
+    mode: "0755"
     owner: "{{ redis_system_user }}"
     group: "{{ redis_system_group }}"
 
@@ -51,7 +51,7 @@
   ansible.builtin.file:
     path: "{{ redis_log_dir }}"
     state: directory
-    mode: 0755
+    mode: "0755"
     owner: "{{ redis_system_user }}"
     group: "{{ redis_system_group }}"
 
@@ -78,7 +78,7 @@
       ansible.builtin.file:
         path: /tmp/redis
         state: directory
-        mode: 0755
+        mode: "0755"
       when:
         - not ansible_check_mode
         - not redis_is_installed.stat.exists or
@@ -108,7 +108,7 @@
       ansible.builtin.copy:
         src: "/tmp/redis/{{ item }}"
         dest: /usr/local/bin
-        mode: 0751
+        mode: "0751"
         owner: "{{ redis_system_user }}"
         group: "{{ redis_system_group }}"
       when:

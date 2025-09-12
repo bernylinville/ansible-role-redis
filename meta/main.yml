@@ -5,7 +5,7 @@ galaxy_info:
   role_name: redis
   author: bernylinville
   description: Redis for Linux
-  company: "Midwestern Mac, LLC"
+  company: "bernylinville"
   license: "license (BSD, MIT)"
   min_ansible_version: 2.10
   platforms:
